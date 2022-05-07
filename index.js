@@ -1,18 +1,18 @@
 const express = require('express');
 const session = require('express-session');
 const mysql = require("mysql");
-//const dotenv = require('dotenv');
+const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
 
-//dotenv.config({ path: './.env'});
+dotenv.config({ path: './.env'});
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'password',
-    database: 'nodelogin'
+    host: process.env.DATABASE_HOST,
+    user: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE
 });
 
 db.connect( (error) => {
@@ -40,7 +40,7 @@ app.post('/login', (req, res) => {
   var username = req.body.username;
   var password = req.body.password;
 
-  db.query("Select * from accounts where username = ? and password = ?",[username, password], (error,results,fields) => {
+  db.query("SELECT * FROM accounts WHERE username = ? AND password = ?",[username, password], (error,results,fields) => {
   if (results.length > 0) {
     req.session.isLoggedIn = true;
     res.redirect(req.query.redirect_url ? req.query.redirect_url : '/');
@@ -76,6 +76,16 @@ app.get('/account', (req, res) => {
   } else {
     res.redirect('/login?redirect_url=/account');
   }
+});
+
+app.get('/accountInfo', (req, res) => {
+  db.query("SELECT * FROM accounts", (err, result, fields) => {
+    if (req.session.isLoggedIn === true) {
+      res.send(result);
+    } else {
+      res.redirect('/login?redirect_url=/accountInfo');
+    }
+  });
 });
 
 app.get('/contact', (req, res) => {
