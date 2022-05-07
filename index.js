@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
+var globalUserName = ""
 
 dotenv.config({ path: './.env'});
 
@@ -38,6 +39,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   var username = req.body.username;
+  globalUserName = username;
   var password = req.body.password;
 
   db.query("SELECT * FROM accounts WHERE username = ? AND password = ?",[username, password], (error,results,fields) => {
@@ -48,7 +50,6 @@ app.post('/login', (req, res) => {
     res.render('login', {error: 'Username or password is incorrect'});
   }
   })
-  
 });
 
 /** Handle logout function */
@@ -79,7 +80,8 @@ app.get('/account', (req, res) => {
 });
 
 app.get('/accountInfo', (req, res) => {
-  db.query("SELECT * FROM accounts", (err, result, fields) => {
+
+  db.query('SELECT * FROM accounts WHERE username = ?',[globalUserName], (err, result, fields) => {
     if (req.session.isLoggedIn === true) {
       res.send(result);
     } else {
