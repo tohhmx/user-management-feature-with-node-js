@@ -1,0 +1,15 @@
+
+html
+	head
+		title= 'User Details'
+		style
+			include style.css
+	body
+		h1= 'User Details'
+	table
+		for user in userDetails
+			tr
+				td= user.id
+				td= user.username
+				td= user.password
+				td= user.email

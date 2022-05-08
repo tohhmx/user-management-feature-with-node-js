@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
-var globalUserName = ""
+var UserNameIsLoggedIn = ""
 
 dotenv.config({ path: './.env'});
 
@@ -39,7 +39,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   var username = req.body.username;
-  globalUserName = username;
+  UserNameIsLoggedIn = username;
   var password = req.body.password;
 
   db.query("SELECT * FROM accounts WHERE username = ? AND password = ?",[username, password], (error,results,fields) => {
@@ -79,16 +79,28 @@ app.get('/account', (req, res) => {
   }
 });
 
-app.get('/accountInfo', (req, res) => {
+app.get('/userDetails', (req, res) => {
+  var userDetails = [];
 
-  db.query('SELECT * FROM accounts WHERE username = ?',[globalUserName], (err, result, fields) => {
-    if (req.session.isLoggedIn === true) {
-      res.send(result);
+  db.query('SELECT * FROM accounts WHERE username = ?',[UserNameIsLoggedIn], (err, result, fields) => {
+    if (req.session.isLoggedIn === true && result.length==1) {
+        var user = {
+          'id':result[0].id,
+          'username':result[0].username,
+          'password':result[0].password,
+          'email':result[0].email
+        }
+
+        userDetails.push(user);
+
+      res.render('userDetails', {"userDetails": userDetails});
+
     } else {
-      res.redirect('/login?redirect_url=/accountInfo');
+      res.redirect('/login?redirect_url=/userDetails');
     }
   });
 });
+
 
 app.get('/contact', (req, res) => {
   res.send('Our address : 321 Main Street, Beverly Hills.');
