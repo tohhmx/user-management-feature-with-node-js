@@ -5,7 +5,8 @@ const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
-var UserNameIsLoggedIn = ""
+var userNameIsLoggedIn = "";
+var currentEmail = "";
 
 dotenv.config({ path: './.env'});
 
@@ -39,7 +40,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   var username = req.body.username;
-  UserNameIsLoggedIn = username;
+  userNameIsLoggedIn = username;
   var password = req.body.password;
 
   db.query("SELECT * FROM accounts WHERE username = ? AND password = ?",[username, password], (error,results,fields) => {
@@ -82,7 +83,7 @@ app.get('/account', (req, res) => {
 app.get('/userDetails', (req, res) => {
   var userDetails = [];
 
-  db.query('SELECT * FROM accounts WHERE username = ?',[UserNameIsLoggedIn], (err, result, fields) => {
+  db.query('SELECT * FROM accounts WHERE username = ?',[userNameIsLoggedIn], (err, result, fields) => {
     if (req.session.isLoggedIn === true && result.length==1) {
         var user = {
           'id':result[0].id,
@@ -90,6 +91,8 @@ app.get('/userDetails', (req, res) => {
           'password':result[0].password,
           'email':result[0].email
         }
+
+        currentEmail = result[0].email;
 
         userDetails.push(user);
 
@@ -112,8 +115,12 @@ app.get('/UpdateEmail', (req, res) => {
 
 /** Modify email and redirect to userDetails*/
 app.post('/updateEmail', (req, res) => {
-  db.query("UPDATE accounts SET email = ? WHERE username = ?",[req.body.email, UserNameIsLoggedIn])
-  res.redirect('/userDetails');
+  if (req.body.email !== currentEmail){
+    db.query("UPDATE accounts SET email = ? WHERE username = ?",[req.body.email, userNameIsLoggedIn])
+    res.redirect('/userDetails');
+  } else {
+    res.render('updateEmail', {error: 'Inputted email is identical to the current email, please input a different email'});
+  }
 });
 
 /** App listening on port */
