@@ -101,9 +101,19 @@ app.get('/userDetails', (req, res) => {
   });
 });
 
-
 app.get('/contact', (req, res) => {
   res.send('Our address : 321 Main Street, Beverly Hills.');
+});
+
+/** Render updateEmail page*/
+app.get('/UpdateEmail', (req, res) => {
+  res.render('updateEmail');
+});
+
+/** Modify email and redirect to userDetails*/
+app.post('/updateEmail', (req, res) => {
+  db.query("UPDATE accounts SET email = ? WHERE username = ?",[req.body.email, UserNameIsLoggedIn])
+  res.redirect('/userDetails');
 });
 
 /** App listening on port */
